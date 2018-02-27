@@ -1,6 +1,7 @@
-export default function moveEntity(entity, manager, direction) {
-  let nextX = this.x;
-  let nextY = this.y;
+// Move an entity
+export function moveEntity(game, entity, direction) {
+  let nextX = entity.location.x;
+  let nextY = entity.location.y;
 
   switch (direction) {
     case 'up':
@@ -18,14 +19,10 @@ export default function moveEntity(entity, manager, direction) {
     default:
   }
 
-  const target = this.getSpace(nextX, nextY);
+  const target = game.getEntityAtLocation(nextX, nextY);
 
-  if (target instanceof Entity) {
-    if (this.player) {
-      this.damage(target);
-    }
-  } else if (target === true) {
-    this.x = nextX;
-    this.y = nextY;
+  if (!target) {
+    entity.location.x = nextX;
+    entity.location.y = nextY;
   }
 }
