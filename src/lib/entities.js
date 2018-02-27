@@ -1,4 +1,4 @@
-import { Drawable, Living, Location, Solid, Playable, Item } from './components';
+import { Drawable, Living, Location, Solid, Playable, Item, Equippable, Inventory, Armable } from './components';
 import componentPropertyName from '../util/component-property-name';
 
 export default manager => (type, props = {}) => {
@@ -20,8 +20,8 @@ export default manager => (type, props = {}) => {
   return entity;
 };
 
-export const Player = [[Drawable, { character: '@' }], Solid, Location, Living, Playable];
+export const Player = [[Drawable, { character: '@' }], Solid, Location, Living, Playable, Inventory, Armable];
 
 export const Wall = [[Drawable, { character: '#' }], Solid, Location];
 
-export const Pistol = [[Drawable, { character: 'O' }], [Item, { name: 'Pistol' }]];
+export const Pistol = [[Drawable, { character: 'O' }], [Item, { name: 'Pistol' }], Equippable];

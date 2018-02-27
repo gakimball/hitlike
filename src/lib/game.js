@@ -1,14 +1,15 @@
 import rot from 'rot-js';
 import { EntityManager } from 'tiny-ecs';
 import times from 'lodash/times';
-import { Drawable, Playable, Location } from './components';
+import { Drawable, Playable, Location, Solid } from './components';
 import createEntityFactory, { Player, Wall, Pistol } from './entities';
-import { moveEntity, placeEntity } from './actions';
+import { moveEntity, placeEntity, pickUpItem, unequipItem, dropEquippedItem, equipItemByIndex } from './actions';
+import standingOnItem from '../util/standing-on-item';
 
 export default class Game {
   constructor() {
     this.display = new rot.Display({
-      width: 48,
+      width: 80,
       height: 27,
       fontSize: 16,
       bg: '#333',
@@ -48,7 +49,7 @@ export default class Game {
 
   handleKey = (e) => {
     const player = this.entities.queryComponents([Playable])[0];
-    e.preventDefault();
+    let handled = true;
 
     switch (e.key) {
       case 'ArrowUp':
@@ -63,7 +64,33 @@ export default class Game {
       case 'ArrowRight':
         this.runAction(moveEntity, player, 'right');
         break;
+      case ' ':
+        this.runAction(pickUpItem, player);
+        break;
+      case 'z':
+        this.runAction(unequipItem, player);
+        break;
+      case 'x':
+        this.runAction(dropEquippedItem, player);
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        this.runAction(equipItemByIndex, player, parseInt(e.key, 10) - 1);
+        break;
       default:
+        handled = false;
+    }
+
+    if (handled) {
+      this.log('');
+      e.preventDefault();
     }
   }
 
@@ -78,7 +105,6 @@ export default class Game {
 
   log(text) {
     this.logText = text;
-    this.drawInterface();
   }
 
   getEntitiesAtLocation(targetX, targetY) {
@@ -97,6 +123,8 @@ export default class Game {
   }
 
   tick() {
+    this.display.clear();
+
     // Draw empty space
     this.map.create((x, y, wall) => {
       if (!wall) {
@@ -104,26 +132,75 @@ export default class Game {
       }
     });
 
-    // Draw drawable entities
-    this.entities.queryComponents([Drawable, Location]).forEach(entity => {
+    const deferredDrawables = [];
+    const draw = entity => {
       const { x, y } = entity.location;
       const { character } = entity.drawable;
 
       this.display.draw(x, y, character);
+    }
+
+    // Draw drawable entities (floor)
+    this.entities.queryComponents([Drawable, Location]).forEach(entity => {
+      if (entity.hasComponent(Solid)) {
+        deferredDrawables.push(entity);
+      } else {
+        draw(entity);
+      }
     });
+
+    // Draw drawable entities (solid)
+    deferredDrawables.forEach(draw);
 
     this.drawInterface();
   }
 
   drawInterface() {
+    const player = this.entities.queryComponents([Playable])[0];
     const logY = 22;
     const logWidth = 40;
 
+    // Log
     times(logWidth, x => {
       const y = logY;
       const character = this.logText[x] || ' ';
 
       this.display.draw(x, y, character);
     });
+
+    // Inventory
+    const inventoryX = 42;
+    const inventoryY = 1;
+
+    this.display.drawText(inventoryX, inventoryY, 'Inventory:');
+    player.inventory.contents.forEach((item, index) => {
+      const x = inventoryX + 2;
+      const y = inventoryY + 2 + index;
+      const text = `${index + 1}. ${player.armable.item === item ? '[E] ' : ''}${item.item.name}`;
+
+      this.display.drawText(x, y, text);
+    });
+
+    // Controls
+    const controls = [];
+
+    if (player.armable.item !== null) {
+      const name = player.armable.item.item.name;
+
+      controls.push(['Z', `Unequip ${name}`], ['X', `Drop ${name}`]);
+    } else if (player.inventory.contents.length > 0) {
+      controls.push(['1–9', `Equip items`]);
+    } else {
+      const item = standingOnItem(this, player);
+
+      if (item) {
+        controls.push(['Space', `Pick up ${item.item.name}`])
+      }
+    }
+
+    const controlY = 24;
+    const controlText = controls.map(([char, action]) => `[${char}] ${action}`).join(' ')
+
+    this.display.drawText(0, controlY, controlText);
   }
 }

@@ -18,15 +18,8 @@ export function Item() {
   this.name = 'Unknown Item';
 }
 
-// Item is being held in a living thing's inventory
-export function HeldItem() {
-  this.parent = null;
-}
-
-// Item is being stored in a chest
-export function StoredItem() {
-  this.parent = null;
-}
+// Item can be equipped
+export function Equippable() {}
 
 // Entity is a living thing
 export function Living() {
@@ -35,3 +28,16 @@ export function Living() {
 
 // Entity is the player
 export function Playable() {}
+
+// Entity has an inventory
+export function Inventory() {
+  this.contents = [];
+  this.add = item => this.contents.push(item);
+  this.remove = item => this.contents.splice(this.contents.indexOf(item), 1);
+  this.has = item => this.contents.includes(item);
+}
+
+// Entity can equip an item
+export function Armable() {
+  this.item = null;
+}
