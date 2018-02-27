@@ -1,3 +1,6 @@
+import { Location, Solid, Playable, Item } from './components';
+import { standingOnItem } from './events';
+
 // Move an entity
 export function moveEntity(game, entity, direction) {
   let nextX = entity.location.x;
@@ -19,10 +22,25 @@ export function moveEntity(game, entity, direction) {
     default:
   }
 
-  const target = game.getEntityAtLocation(nextX, nextY);
+  placeEntity(game, entity, nextX, nextY);
+}
 
-  if (!target) {
-    entity.location.x = nextX;
-    entity.location.y = nextY;
+export function placeEntity(game, entity, x, y) {
+  const targets = game.getEntitiesAtLocation(x, y);
+  const blockingEntities = targets.filter(t => t.hasComponent(Solid));
+
+  if (blockingEntities.length === 0) {
+    if (!entity.hasComponent(Location)) {
+      entity.addComponent(Location);
+    }
+
+    entity.location.x = x;
+    entity.location.y = y;
+
+    const item = targets.filter(t => t.hasComponent(Item))[0];
+
+    if (entity.hasComponent(Playable) && item) {
+      game.dispatchEvent(standingOnItem, item);
+    }
   }
 }

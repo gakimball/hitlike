@@ -1,8 +1,9 @@
 import rot from 'rot-js';
 import { EntityManager } from 'tiny-ecs';
+import times from 'lodash/times';
 import { Drawable, Playable, Location } from './components';
-import createEntityFactory, { Player, Wall } from './entities';
-import { moveEntity } from './actions';
+import createEntityFactory, { Player, Wall, Pistol } from './entities';
+import { moveEntity, placeEntity } from './actions';
 
 export default class Game {
   constructor() {
@@ -16,6 +17,7 @@ export default class Game {
     this.entities = new EntityManager();
     this.map = new rot.Map.Arena(40, 20);
     this.createEntity = createEntityFactory(this.entities);
+    this.logText = '';
     this.setup();
     this.tick();
   }
@@ -35,6 +37,9 @@ export default class Game {
         y: 10,
       },
     });
+
+    const pistol = this.createEntity(Pistol);
+    this.runAction(placeEntity, pistol, 15, 15);
   }
 
   getCanvas() {
@@ -67,18 +72,28 @@ export default class Game {
     this.tick();
   }
 
-  getEntityAtLocation(targetX, targetY) {
+  dispatchEvent(event, ...args) {
+    event(this, ...args);
+  }
+
+  log(text) {
+    this.logText = text;
+    this.drawInterface();
+  }
+
+  getEntitiesAtLocation(targetX, targetY) {
     const entities = this.entities.queryComponents([Location]);
+    const found = [];
 
     for (const entity of entities) {
       const { x, y } = entity.location;
 
       if (targetX === x && targetY === y) {
-        return entity;
+        found.push(entity);
       }
     }
 
-    return null;
+    return found;
   }
 
   tick() {
@@ -90,9 +105,23 @@ export default class Game {
     });
 
     // Draw drawable entities
-    this.entities.queryComponents([Drawable]).forEach(entity => {
+    this.entities.queryComponents([Drawable, Location]).forEach(entity => {
       const { x, y } = entity.location;
       const { character } = entity.drawable;
+
+      this.display.draw(x, y, character);
+    });
+
+    this.drawInterface();
+  }
+
+  drawInterface() {
+    const logY = 22;
+    const logWidth = 40;
+
+    times(logWidth, x => {
+      const y = logY;
+      const character = this.logText[x] || ' ';
 
       this.display.draw(x, y, character);
     });
