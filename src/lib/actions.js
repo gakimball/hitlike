@@ -1,28 +1,12 @@
-import { Location, Solid, Playable, Item, Equippable, Armable } from './components';
+import { Location, Solid, Playable, Item, Equippable, Armable, Living } from './components';
 import { standingOnItem } from './events';
+import getDirectionalCoords from '../util/get-directional-coords';
 
 // Move an entity one square in a direction
 export function moveEntity(game, entity, direction) {
-  let nextX = entity.location.x;
-  let nextY = entity.location.y;
+  const { x, y } = getDirectionalCoords(entity.location.x, entity.location.y, direction);
 
-  switch (direction) {
-    case 'up':
-      nextY--;
-      break;
-    case 'down':
-      nextY++;
-      break;
-    case 'left':
-      nextX--;
-      break;
-    case 'right':
-      nextX++;
-      break;
-    default:
-  }
-
-  placeEntity(game, entity, nextX, nextY);
+  placeEntity(game, entity, x, y);
 }
 
 // Place an entity in a specific location
@@ -124,4 +108,23 @@ export function dropItem(game, entity, item) {
 
   removeFromInventory(game, entity, item);
   placeEntity(game, item, x, y);
+}
+
+// Peform a combat action in a cardinal direction, depending on what is equipped
+export function doCombat(game, entity, direction) {
+  // Knock out move
+  if (entity.armable.item === null) {
+    const { x, y } = getDirectionalCoords(entity.location.x, entity.location.y, direction);
+    const target = game.getEntitiesAtLocation(x, y).filter(e => e.hasComponent(Solid))[0];
+
+    if (target) {
+      knockOut(game, target);
+    }
+  }
+}
+
+export function knockOut(game, entity) {
+  if (entity.hasComponent(Living) && entity.living.awake) {
+    entity.living.awake = false;
+  }
 }

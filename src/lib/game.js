@@ -2,9 +2,11 @@ import rot from 'rot-js';
 import { EntityManager } from 'tiny-ecs';
 import times from 'lodash/times';
 import { Drawable, Playable, Location, Solid } from './components';
-import createEntityFactory, { Player, Wall, Pistol } from './entities';
-import { moveEntity, placeEntity, pickUpItem, unequipItem, dropEquippedItem, equipItemByIndex } from './actions';
+import createEntityFactory, { Player, Wall, Pistol, Enemy } from './entities';
+import { moveEntity, placeEntity, pickUpItem, unequipItem, dropEquippedItem, equipItemByIndex, doCombat } from './actions';
 import standingOnItem from '../util/standing-on-item';
+import getDirection from '../util/get-direction';
+import getEntityColor from '../util/get-entity-color';
 
 export default class Game {
   constructor() {
@@ -41,6 +43,13 @@ export default class Game {
 
     const pistol = this.createEntity(Pistol);
     this.runAction(placeEntity, pistol, 15, 15);
+
+    this.createEntity(Enemy, {
+      location: {
+        x: 12,
+        y: 12,
+      },
+    });
   }
 
   getCanvas() {
@@ -72,6 +81,12 @@ export default class Game {
         break;
       case 'x':
         this.runAction(dropEquippedItem, player);
+        break;
+      case 'w':
+      case 'a':
+      case 's':
+      case 'd':
+        this.runAction(doCombat, player, getDirection(e.key));
         break;
       case '1':
       case '2':
@@ -137,7 +152,7 @@ export default class Game {
       const { x, y } = entity.location;
       const { character } = entity.drawable;
 
-      this.display.draw(x, y, character);
+      this.display.draw(x, y, character, getEntityColor(entity));
     }
 
     // Draw drawable entities (floor)

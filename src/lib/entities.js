@@ -25,3 +25,5 @@ export const Player = [[Drawable, { character: '@' }], Solid, Location, Living, 
 export const Wall = [[Drawable, { character: '#' }], Solid, Location];
 
 export const Pistol = [[Drawable, { character: 'O' }], [Item, { name: 'Pistol' }], Equippable];
+
+export const Enemy = [[Drawable, { character: 'E' }], Solid, Location, Living, Inventory];

@@ -24,6 +24,7 @@ export function Equippable() {}
 // Entity is a living thing
 export function Living() {
   this.name = 'Unknown Being';
+  this.awake = true;
 }
 
 // Entity is the player
