@@ -70,7 +70,11 @@ export function pickUpItem(game, entity) {
 
 // Equip an item from an entity's inventory
 export function equipItem(game, entity, item) {
-  if (entity.inventory.has(item) && entity.armable.item !== item) {
+  if (
+    entity.inventory.has(item)
+    && item.hasComponent(Equippable)
+    && entity.armable.item !== item
+  ) {
     entity.armable.item = item;
   }
 }

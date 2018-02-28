@@ -42,7 +42,7 @@ export default class Game {
     });
 
     const pistol = this.createEntity(Pistol);
-    this.runAction(placeEntity, pistol, 15, 15);
+    this.runAction(placeEntity, pistol, 10, 12);
 
     this.createEntity(Enemy, {
       location: {
