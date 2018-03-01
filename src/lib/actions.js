@@ -1,4 +1,4 @@
-import { Location, Solid, Playable, Item, Equippable, Armable, Living } from './components';
+import { Location, Solid, Playable, Item, Equippable, Armable, Living, Fireable, Damaging, Dead } from './components';
 import { standingOnItem } from './events';
 import getDirectionalCoords from '../util/get-directional-coords';
 
@@ -116,19 +116,58 @@ export function dropItem(game, entity, item) {
 
 // Peform a combat action in a cardinal direction, depending on what is equipped
 export function doCombat(game, entity, direction) {
+  const { item } = entity.armable;
+
   // Knock out move
-  if (entity.armable.item === null) {
+  if (item === null) {
     const { x, y } = getDirectionalCoords(entity.location.x, entity.location.y, direction);
     const target = game.getEntitiesAtLocation(x, y).filter(e => e.hasComponent(Solid))[0];
 
     if (target) {
       knockOut(game, target);
     }
+  } else if (item.hasComponent(Fireable)) {
+    fireWeapon(game, entity, item, direction);
   }
 }
 
+// Knock out an entity
 export function knockOut(game, entity) {
   if (entity.hasComponent(Living) && entity.living.awake) {
     entity.living.awake = false;
   }
+}
+
+// Fire a weapon in a direction
+export function fireWeapon(game, entity, weapon, direction) {
+  if (weapon.fireable.ammo === 0) {
+    return;
+  }
+
+  const target = game.findEntityAlongPath(entity.location, direction);
+  weapon.fireable.ammo--;
+
+  if (target) {
+    if (weapon.hasComponent(Damaging)) {
+      damageEntity(game, target, weapon.damaging.damage);
+    }
+  }
+}
+
+// Damage a living entity
+export function damageEntity(game, entity, damage) {
+  if (entity.hasComponent(Living) && !entity.hasComponent(Dead)) {
+    entity.living.health -= damage;
+
+    if (entity.living.health <= 0) {
+      killEntity(game, entity);
+    }
+  }
+}
+
+// Kill a living entity
+export function killEntity(game, entity) {
+  entity.living.health = 0;
+  entity.living.awake = false;
+  entity.addComponent(Dead);
 }

@@ -21,11 +21,26 @@ export function Item() {
 // Item can be equipped
 export function Equippable() {}
 
+// Item can be fired
+export function Fireable() {
+  this.ammo = 0;
+  this.range = 100;
+}
+
+// Item can bestow harm
+export function Damaging() {
+  this.damage = 0;
+}
+
 // Entity is a living thing
 export function Living() {
   this.name = 'Unknown Being';
+  this.health = 1;
   this.awake = true;
 }
+
+// Entity is dead
+export function Dead() {}
 
 // Entity is the player
 export function Playable() {}

@@ -7,6 +7,7 @@ import { moveEntity, placeEntity, pickUpItem, unequipItem, dropEquippedItem, equ
 import standingOnItem from '../util/standing-on-item';
 import getDirection from '../util/get-direction';
 import getEntityColor from '../util/get-entity-color';
+import getDirectionalCoords from '../util/get-directional-coords';
 
 export default class Game {
   constructor() {
@@ -137,6 +138,28 @@ export default class Game {
     return found;
   }
 
+  findEntityAlongPath(origin, direction, range) {
+    const newRange = range - 1;
+
+    // If nothing has been found yet, we're out of range
+    if (newRange < 0) {
+      return null;
+    }
+
+    const coords = getDirectionalCoords(origin.x, origin.y, direction);
+    const target = this
+      .getEntitiesAtLocation(coords.x, coords.y)
+      .filter(entity => entity.hasComponent(Solid))[0];
+
+    // If we found a target, return it
+    if (target) {
+      return target;
+    }
+
+    // If we didn't find anything, move one more square in the same direction
+    return this.findEntityAlongPath(coords, direction, newRange);
+  }
+
   tick() {
     this.display.clear();
 
@@ -191,7 +214,7 @@ export default class Game {
     player.inventory.contents.forEach((item, index) => {
       const x = inventoryX + 2;
       const y = inventoryY + 2 + index;
-      const text = `${index + 1}. ${player.armable.item === item ? '[E] ' : ''}${item.item.name}`;
+      const text = `${index + 1}. ${player.armable.item === item ? '[E] ' : ''}${item.item.name}${item.fireable ? ` (${item.fireable.ammo})` : ''}`;
 
       this.display.drawText(x, y, text);
     });
