@@ -2,7 +2,7 @@ import rot from 'rot-js';
 import { EntityManager } from 'tiny-ecs';
 import times from 'lodash/times';
 import { Drawable, Playable, Location, Solid } from './components';
-import createEntityFactory, { Player, Wall, Pistol, Enemy } from './entities';
+import createEntityFactory, { Player, Wall, Pistol, Enemy, FireExtinguisher } from './entities';
 import { moveEntity, placeEntity, pickUpItem, unequipItem, dropEquippedItem, equipItemByIndex, doCombat } from './actions';
 import standingOnItem from '../util/standing-on-item';
 import getDirection from '../util/get-direction';
@@ -44,6 +44,9 @@ export default class Game {
 
     const pistol = this.createEntity(Pistol);
     this.runAction(placeEntity, pistol, 10, 12);
+
+    const fireExtinguisher = this.createEntity(FireExtinguisher);
+    this.runAction(placeEntity, fireExtinguisher, 10, 13);
 
     this.createEntity(Enemy, {
       location: {

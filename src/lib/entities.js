@@ -1,4 +1,4 @@
-import { Drawable, Living, Location, Solid, Playable, Item, Equippable, Inventory, Armable, Fireable, Damaging } from './components';
+import { Drawable, Living, Location, Solid, Playable, Item, Equippable, Inventory, Armable, Fireable, Damaging, Throwable, Concussive } from './components';
 import componentPropertyName from '../util/component-property-name';
 
 /**
@@ -44,5 +44,7 @@ export const Player = [...character('@'), Playable, Armable];
 export const Wall = [[Drawable, { character: '#' }], Solid, Location];
 
 export const Pistol = [...item('Pistol'), [Fireable, { ammo: 6 }], [Damaging, { damage: 1 }]];
+
+export const FireExtinguisher = [...item('Fire Extinguisher'), Throwable, Concussive];
 
 export const Enemy = [...character('E')];

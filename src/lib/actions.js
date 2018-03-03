@@ -1,4 +1,4 @@
-import { Location, Solid, Playable, Item, Equippable, Armable, Living, Fireable, Damaging, Dead } from './components';
+import { Location, Solid, Playable, Item, Equippable, Armable, Living, Fireable, Damaging, Dead, Concussive, Throwable } from './components';
 import { standingOnItem } from './events';
 import getDirectionalCoords from '../util/get-directional-coords';
 
@@ -128,6 +128,8 @@ export function doCombat(game, entity, direction) {
     }
   } else if (item.hasComponent(Fireable)) {
     fireWeapon(game, entity, item, direction);
+  } else if (item.hasComponent(Throwable)) {
+    throwItem(game, entity, item, direction);
   }
 }
 
@@ -144,13 +146,30 @@ export function fireWeapon(game, entity, weapon, direction) {
     return;
   }
 
-  const target = game.findEntityAlongPath(entity.location, direction);
+  const target = game.findEntityAlongPath(entity.location, direction, weapon.fireable.range);
   weapon.fireable.ammo--;
 
   if (target) {
     if (weapon.hasComponent(Damaging)) {
       damageEntity(game, target, weapon.damaging.damage);
     }
+  }
+}
+
+export function throwItem(game, entity, item, direction) {
+  const target = game.findEntityAlongPath(entity.location, direction, item.throwable.range);
+  removeFromInventory(game, entity, item);
+
+  if (target) {
+    if (item.hasComponent(Damaging)) {
+      damageEntity(game, target, item.damaging.damage);
+    }
+
+    if (item.hasComponent(Concussive)) {
+      knockOut(game, target);
+    }
+
+    placeEntity(game, item, target.location.x, target.location.y);
   }
 }
 

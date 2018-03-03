@@ -27,10 +27,18 @@ export function Fireable() {
   this.range = 100;
 }
 
+// Item can be thrown
+export function Throwable() {
+  this.range = 5;
+}
+
 // Item can bestow harm
 export function Damaging() {
   this.damage = 0;
 }
+
+// Item can knock out an entity
+export function Concussive() {}
 
 // Entity is a living thing
 export function Living() {
